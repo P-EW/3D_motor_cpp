@@ -1,7 +1,5 @@
-#include <iostream>
 #include "libs/tgaimage.h"
-#include <algorithm>
-#include <array>
+#include "src/model.h"
 
 using namespace std;
 
@@ -50,55 +48,18 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color){
 }
 
 int main(){
-    ifstream file("obj/african_head/african_head.obj");
-    vector<array<float, 3> > posVertices;
-    vector<array<int, 3> > posFace;
 
-    if (file.is_open()) {
-        string fline;
-        float tempVertex[3];
-        int tempFace[3];
-        posVertices.push_back({0, 0, 0}); // ajout d'un sommet inutile (en pos 0) car les sommets vont de 1 à n
+    Model model = Model("obj/african_head/african_head.obj");
 
-        while (getline(file, fline)) {
-            //TODO optimiser la façon de creer les vectors
-            //TODO créer une classe qui s'occupe de creer tout ça (model)
-
-            if(fline.length() > 0 && !fline.rfind("v ",0)){
-                fline.erase(0, fline.find(' ') + 1);
-                tempVertex[0] = stof(fline.substr(0, fline.find(' ')));
-                fline.erase(0, fline.find(' ') + 1);
-                tempVertex[1] = stof(fline.substr(0, fline.find(' ')));
-                fline.erase(0, fline.find(' ') + 1);
-                tempVertex[2] = stof(fline.substr(0, fline.find(' ')));
-
-                posVertices.push_back({tempVertex[0], tempVertex[1], tempVertex[2]});
-            }
-
-            if(fline.length() > 0 && !fline.rfind("f ",0)){
-                fline.erase(0, fline.find(' ') + 1); //enleve le f et l'espace
-                tempFace[0] = stoi(fline.substr(0, fline.find('/')));
-
-                fline.erase(0, fline.find(' ') + 1);
-                tempFace[1] = stoi(fline.substr(0, fline.find('/')));
-
-                fline.erase(0, fline.find(' ') + 1);
-                tempFace[2] = stoi(fline.substr(0, fline.find('/')));
-
-                posFace.push_back({tempFace[0],tempFace[1], tempFace[2]});
-            }
-
-        }
-        file.close();
-    }
-
-    //nuage de points
     /*
+    //nuage de points
     TGAImage image(width, height, TGAImage::RGB);
     int posx, posy;
-    for(auto vertex : posVertices){
-        posx = (vertex[0]+1) *(width/2.);
-        posy = (vertex[1]+1) *(height/2.);
+    Vector3f tempVertex;
+    for(int i = 0; i < model.getVerticesSize(); i++){
+        tempVertex = model.getVertexAt(i);
+        posx = (tempVertex.x+1) *(width/2.);
+        posy = (tempVertex.y+1) *(height/2.);
         line(posx,posy,posx+1,posy+1, image, white);
     }
     image.write_tga_file("framebuffer.tga");
@@ -106,13 +67,15 @@ int main(){
 
     //triangles
     TGAImage image(width, height, TGAImage::RGB);
+    vector<int> tempFace;
     int x0, x1, y0, y1;
-    for(auto face : posFace){
-        for(int i = 0; i< 3 ; i++){
-            x0 = (posVertices.at(face[i])[0] +1) *(width/2.);
-            y0 = (posVertices.at(face[i])[1] +1) *(height/2.);
-            x1 = (posVertices.at(face[(i+1)%3])[0] +1) *(width/2.);
-            y1 = (posVertices.at(face[(i+1)%3])[1] +1) *(height/2.);
+    for(int i = 0; i < model.getFacesSize(); i++){
+        tempFace = model.getFaceAt(i);
+        for(int j = 0; j < 3 ; j++){
+            x0 = (model.getVertexAt(tempFace.at(j)).x +1) *(width/2.);
+            y0 = (model.getVertexAt(tempFace.at(j)).y +1) *(height/2.);
+            x1 = (model.getVertexAt(tempFace.at((j+1)%3)).x +1) *(width/2.);
+            y1 = (model.getVertexAt(tempFace.at((j+1)%3)).y +1) *(height/2.);
             line(x0,y0,x1,y1, image, white);
         }
     }
