@@ -52,12 +52,12 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color){
 int main(){
     ifstream file("obj/african_head/african_head.obj");
     vector<array<float, 3> > posVertices;
-    vector<array<array<int,3>,3>> posF;
+    vector<array<array<int,3>,3>> posFace;
 
     if (file.is_open()) {
         string fline;
         float tempVertex[3];
-        int tempF[3][3];
+        int tempFace[3][3];
 
         while (getline(file, fline)) {
             if(fline.length() > 0 && !fline.rfind("v ",0)){
