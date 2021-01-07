@@ -85,8 +85,6 @@ int main(){
                 fline.erase(0, fline.find(' ') + 1);
                 tempFace[2] = stoi(fline.substr(0, fline.find('/')));
 
-                //cout << tempFace[0] <<"/"<<tempFace[1] <<"/"<<tempFace[2] << endl;
-
                 posFace.push_back({tempFace[0],tempFace[1], tempFace[2]});
             }
 
@@ -110,12 +108,13 @@ int main(){
     TGAImage image(width, height, TGAImage::RGB);
     int x0, x1, y0, y1;
     for(auto face : posFace){
-        x0 = (posVertices.at(face[0])[0] +1) *(width/2.);
-        y0 = (posVertices.at(face[0])[1] +1) *(height/2.);
-        x1 = (posVertices.at(face[1])[0] +1) *(width/2.);
-        y1 = (posVertices.at(face[1])[1] +1) *(height/2.);
-
-        line(x0,y0,x1,y1, image, white);
+        for(int i = 0; i< 3 ; i++){
+            x0 = (posVertices.at(face[i])[0] +1) *(width/2.);
+            y0 = (posVertices.at(face[i])[1] +1) *(height/2.);
+            x1 = (posVertices.at(face[(i+1)%3])[0] +1) *(width/2.);
+            y1 = (posVertices.at(face[(i+1)%3])[1] +1) *(height/2.);
+            line(x0,y0,x1,y1, image, white);
+        }
     }
     image.write_tga_file("framebuffer.tga");
 
