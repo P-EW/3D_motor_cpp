@@ -20,6 +20,7 @@ protected:
     vector<vector<int>> faces;
 
 public:
+    Model() = default;
     explicit Model(const string& path);
 
     int getVerticesSize();
