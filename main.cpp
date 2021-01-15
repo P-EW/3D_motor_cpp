@@ -22,6 +22,10 @@ int main(){
     renderer.setSavePAth("framebufferWire.tga");
     renderer.render("wire");
 
+    //triangles pleins
+    renderer.setSavePAth("framebufferTriangle.tga");
+    renderer.render("triangle");
+
     return 0;
 }
 
