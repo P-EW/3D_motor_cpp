@@ -11,6 +11,7 @@ protected:
     string r_save_path;
     TGAImage r_image;
     TGAColor r_color = {255, 255, 255, 255}; //default is white
+    bool isRandomColors = false;
 
 public:
     Renderer(Model model, TGAImage image, string save_path);
@@ -19,6 +20,8 @@ public:
     static void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
     void setColor(TGAColor color);
     void setSavePAth(string path);
+    static TGAColor getRandomColor();
+    void setRandomColorMode(bool status);
 };
 
 

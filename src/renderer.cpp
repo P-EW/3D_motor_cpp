@@ -15,7 +15,12 @@ void Renderer::render(const string& type) {
             posx = (tempVertex.x+1) *(r_image.get_width()/2.);
             posy = (tempVertex.y+1) *(r_image.get_height()/2.);
 
-            line(posx,posy,posx+1,posy+1, r_image, r_color);
+            if(isRandomColors){
+                line(posx,posy,posx+1,posy+1, r_image, getRandomColor());
+            }
+            else{
+                line(posx,posy,posx+1,posy+1, r_image, r_color);
+            }
         }
         r_image.write_tga_file(r_save_path);
     }
@@ -29,7 +34,13 @@ void Renderer::render(const string& type) {
                 y0 = (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.);
                 x1 = (r_model.getVertexAt(tempFace.at((j+1)%3)).x +1) *(r_image.get_width()/2.);
                 y1 = (r_model.getVertexAt(tempFace.at((j+1)%3)).y +1) *(r_image.get_height()/2.);
-                line(x0,y0,x1,y1, r_image, r_color);
+
+                if(isRandomColors){
+                    line(x0,y0,x1,y1, r_image, getRandomColor());
+                }
+                else{
+                    line(x0,y0,x1,y1, r_image, r_color);
+                }
             }
         }
         r_image.write_tga_file(r_save_path);
@@ -77,4 +88,13 @@ void Renderer::setColor(TGAColor color) {
 
 void Renderer::setSavePAth(string path) {
     r_save_path = move(path);
+}
+
+TGAColor Renderer::getRandomColor() {
+    TGAColor couleur(std::rand()%255,std::rand()%255,std::rand()%255,255);
+    return  couleur;
+}
+
+void Renderer::setRandomColorMode(bool status) {
+    isRandomColors = status;
 }

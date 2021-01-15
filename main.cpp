@@ -17,7 +17,8 @@ int main(){
     Renderer renderer(model,image,"framebufferScatter.tga");
     renderer.render("scatter");
 
-    //nuage de points
+    renderer.setRandomColorMode(true);
+    //fils de fer
     renderer.setSavePAth("framebufferWire.tga");
     renderer.render("wire");
 
