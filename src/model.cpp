@@ -5,38 +5,46 @@ Model::Model(const string& path) {
     ifstream file(path);
 
     if (file.is_open()) {
-        string fline;
-        Vector3f vertex;
+        string fline, tempStr;
         // ajout d'un sommet inutile (en pos 0) car les sommets vont de 1 à n
-        vertices.push_back(vertex);
-
+        vertices.push_back({0,0,0});
+        float vertex[3];
+        stringstream strStrm;
         vector<int> face;
+        float tempFloat;
+        int cpt;
         while (getline(file, fline)) {
-            //TODO optimiser la façon de recuperer les infos ?
-            if(fline.length() > 0 && !fline.rfind("v ",0)){
-                fline.erase(0, fline.find(' ') + 1);
-                vertex.x = stof(fline.substr(0, fline.find(' ')));
-                fline.erase(0, fline.find(' ') + 1);
-                vertex.y = stof(fline.substr(0, fline.find(' ')));
-                fline.erase(0, fline.find(' ') + 1);
-                vertex.z = stof(fline.substr(0, fline.find(' ')));
-
-                vertices.push_back(vertex);
+            if(fline.length() > 0 && !fline.rfind("v ",0)) {
+                cpt = 0;
+                strStrm << fline;
+                while (!strStrm.eof()) {
+                    strStrm >> tempStr;
+                    if (stringstream(tempStr) >> tempFloat && cpt < 3) { //limitation to triangles
+                        vertex[cpt] = tempFloat;
+                        cpt++;
+                    }
+                    tempStr = ""; //clear temp string
+                }
+                strStrm.clear();
+                vertices.push_back({vertex[0], vertex[1], vertex[2]});
             }
             else if(fline.length() > 0 && !fline.rfind("f ",0)){
-                fline.erase(0, fline.find(' ') + 1); //enleve le f et l'espace
-                face.push_back(stoi(fline.substr(0, fline.find('/'))));
-
-                fline.erase(0, fline.find(' ') + 1);
-                face.push_back(stoi(fline.substr(0, fline.find('/'))));
-
-                fline.erase(0, fline.find(' ') + 1);
-                face.push_back(stoi(fline.substr(0, fline.find('/'))));
-
-                faces.push_back(face);
+                strStrm << fline;
+                while (!strStrm.eof()) {
+                    strStrm >> tempStr;
+                    if (stringstream(tempStr) >> tempFloat) {
+                        face.push_back(tempFloat);
+                    }
+                    tempStr = ""; //clear temp string
+                }
+                strStrm.clear();
+                if(face.size() == 3){ // we only do triangles here
+                    faces.push_back(face);
+                }
                 face.clear();
             }
         }
+
         file.close();
     }
 }

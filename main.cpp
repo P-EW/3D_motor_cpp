@@ -12,6 +12,9 @@ const TGAColor blue  = {  0,   0, 255, 255};
 int main(){
     TGAImage image(width, height, TGAImage::RGB);
     Model model("obj/african_head/african_head.obj");
+    //Model model("obj/diablo3_pose/diablo3_pose.obj");
+    //Model model("obj/boggie/body.obj");
+
 
     //nuage de points
     Renderer renderer(model,image,"framebufferScatter.tga");
