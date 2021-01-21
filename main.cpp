@@ -15,16 +15,20 @@ int main(){
 
     //nuage de points
     Renderer renderer(model,image,"framebufferScatter.tga");
-    renderer.render("scatter");
+    //renderer.render("scatter");
 
-    renderer.setRandomColorMode(true);
+    //renderer.setRandomColorMode(true);
     //fils de fer
-    renderer.setSavePAth("framebufferWire.tga");
-    renderer.render("wire");
+    //renderer.setSavePath("framebufferWire.tga");
+    //renderer.render("wire");
 
     //triangles pleins
-    renderer.setSavePAth("framebufferTriangle.tga");
-    renderer.render("triangle");
+    //renderer.setSavePath("framebufferTriangle.tga");
+    //renderer.render("triangle");
+
+    //flat shading
+    renderer.setSavePath("framebufferFlatShading.tga");
+    renderer.render("flatshading");
 
     return 0;
 }
