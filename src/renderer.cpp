@@ -67,50 +67,27 @@ void Renderer::render(const string& type) {
         r_image.write_tga_file(r_save_path);
     }
     else if(type =="flatshading"){
-        Vector3f lightDir, vectA, vectB, temp, crossP;
-        lightDir.x = 0;
-        lightDir.y = 0;
-        lightDir.z = 1;
+        Vector3f lightDir, crossP;
+        lightDir = {0,0,1};
         vector<int> tempFace;
-        vector<Vector3f> vertices3f;
+        vector<Vector3f> v3f;
         vector<Vector2i> vertices;
-        float intensity, norm, dotP;
+        float norm, dotP;
         for(int i = 0; i < r_model.getFacesSize(); i++){
             tempFace = r_model.getFaceAt(i);
             for(int j = 0; j < 3 ; j++){
-                temp.x = (r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.);
-                temp.y = (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.);
-                temp.z = (r_model.getVertexAt(tempFace.at(j)).z +1) *(r_image.get_height()/2.);
-                vertices3f.push_back(temp);
-                vertices.emplace_back(temp.x,temp.y);
+                v3f.push_back(r_model.getVertexAt(tempFace.at(j)));
+                vertices.emplace_back((r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.), (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.));
             }
-            //construire des vecteurs a partir des points
-            vectA.x = vertices3f.at(1).x - vertices3f.at(0).x;
-            vectA.y = vertices3f.at(1).y - vertices3f.at(0).y;
-            vectA.z = vertices3f.at(1).z - vertices3f.at(0).z;
-            vectB.x = vertices3f.at(2).x - vertices3f.at(0).x;
-            vectB.y = vertices3f.at(2).y - vertices3f.at(0).y;
-            vectB.z = vertices3f.at(2).z - vertices3f.at(0).z;
-            //calcul de la normale d'un triangle avec le cross product = normale
-            crossP = crossProduct(vectB, vectA);
-
-            //racine carrée de dot product -> norme
+            crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
             norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);
-
-            crossP.x = crossP.x / norm;
-            crossP.y = crossP.y / norm;
-            crossP.z = crossP.z / norm;
-
-
-            //puis dot product (produit vectoriel)
+            crossP = {crossP.x / norm, crossP.y / norm , crossP.z / norm};
             dotP = dotProduct(crossP, lightDir);
-
-            if(dotP < 0) {
-                triangle(vertices, r_image, TGAColor(1-dotP * 255, 1-dotP * 255, 1-dotP * 255, 255));
+            if(dotP >= 0) {
+                triangle(vertices, r_image, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
             }
-
             vertices.clear();
-            vertices3f.clear();
+            v3f.clear();
         }
         r_image.write_tga_file(r_save_path);
     }
@@ -190,6 +167,7 @@ void Renderer::setColor(TGAColor color) {
 }
 
 void Renderer::setSavePath(string path) {
+    r_image.clear();
     r_save_path = move(path);
 }
 
@@ -203,11 +181,7 @@ void Renderer::setRandomColorMode(bool status) {
 }
 
 Vector3f Renderer::crossProduct(Vector3f vectA, Vector3f vectB) {
-    Vector3f crossProduct;
-    crossProduct.x = vectA.y * vectB.z - vectA.z * vectB.y;
-    crossProduct.y = vectA.z * vectB.x - vectA.x * vectB.z;
-    crossProduct.z = vectA.x * vectB.y - vectA.y * vectB.x;
-    return crossProduct;
+    return {vectA.y * vectB.z - vectA.z * vectB.y, vectA.z * vectB.x - vectA.x * vectB.z, vectA.x * vectB.y - vectA.y * vectB.x};
 }
 
 float Renderer::dotProduct(Vector3f vectA, Vector3f vectB) {
