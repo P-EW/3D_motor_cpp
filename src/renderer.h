@@ -21,10 +21,12 @@ protected:
     string r_save_path;
     TGAImage r_image;
     TGAColor r_color = {255, 255, 255, 255}; //default is white
+    float* zBuffer;
     bool isRandomColors = false;
     static bool pointInTriangle(Vector2i p, Vector2i s0, Vector2i s1, Vector2i s2);
     static Vector3f crossProduct(Vector3f vectA, Vector3f vectB);
     static float dotProduct(Vector3f vectA, Vector3f vectB);
+    static Vector3f barycenter(Vector2i p, Vector2i s0, Vector2i s1, Vector2i s2);
 
 public:
     Renderer(Model model, TGAImage image, string save_path);
@@ -34,9 +36,10 @@ public:
     static void line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColor color);
     void setColor(TGAColor color);
     void setSavePath(string path);
+    void setModel(Model model);
     static TGAColor getRandomColor();
     void setRandomColorMode(bool status);
-    static void triangle(vector<Vector2i> vertices, TGAImage &image, TGAColor color);
+    void triangle(vector<Vector2i> vertices, TGAImage &image, TGAColor color);
 };
 
 

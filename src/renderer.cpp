@@ -4,9 +4,14 @@ Renderer::Renderer(Model model, TGAImage image, string save_path) {
     r_model = move(model);
     r_save_path = move(save_path);
     r_image = move(image);
+    zBuffer = new float[r_image.get_height() * r_image.get_width()];
+    for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
+        zBuffer[i] = INT_MIN;
+    }
 }
 
 void Renderer::render(const string& type) {
+
     if(type =="scatter"){
         int posx, posy;
         Vector3f tempVertex;
@@ -45,6 +50,7 @@ void Renderer::render(const string& type) {
         }
         r_image.write_tga_file(r_save_path);
     }
+    /*
     else if(type =="triangle"){
         vector<int> tempFace;
         int x, y;
@@ -66,6 +72,7 @@ void Renderer::render(const string& type) {
         }
         r_image.write_tga_file(r_save_path);
     }
+     */
     else if(type =="flatshading"){
         Vector3f lightDir, crossP;
         lightDir = {0,0,1};
@@ -133,19 +140,28 @@ void Renderer::line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColo
 
 void Renderer::triangle(vector<Vector2i> vertices, TGAImage &image, TGAColor color) {
     //detect the square occupied by the triangle
-    int minX= INT_MAX , minY = INT_MAX;
-    int maxX = 0, maxY = 0;
+    float minX= INT_MAX , minY = INT_MAX;
+    float maxX = INT_MIN, maxY = INT_MIN;
     for(int i = 0; i < vertices.size() ; i++){
         if(vertices[i].x < minX) minX = vertices[i].x;
         if(vertices[i].x > maxX) maxX = vertices[i].x;
         if(vertices[i].y < minY) minY = vertices[i].y;
         if(vertices[i].y > maxY) maxY = vertices[i].y;
     }
+
     //draw the triangle
+    Vector3f temp;
+    float z;
     for(int y = minY; y <= maxY; y++){
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
-                image.set(x, y, color);
+                temp = barycenter({x,y},vertices[0],vertices[1],vertices[2]);
+                //z = temp.x*vertices[0].z + temp.y* vertices[1].z + temp.z * vertices[2].z;
+                //Z-buffer
+                if(zBuffer[x+y*image.get_height()] < temp.z){
+                    zBuffer[x+y*image.get_height()] = temp.z;
+                    image.set(x, y, color);
+                }
             }
         }
     }
@@ -186,4 +202,18 @@ Vector3f Renderer::crossProduct(Vector3f vectA, Vector3f vectB) {
 
 float Renderer::dotProduct(Vector3f vectA, Vector3f vectB) {
     return vectA.x * vectB.x + vectA.y * vectB.y + vectA.z * vectB.z;
+}
+
+void Renderer::setModel(Model model) {
+    r_image.clear();
+    r_model = std::move(model);
+}
+
+Vector3f Renderer::barycenter(Vector2i p, Vector2i s0, Vector2i s1, Vector2i s2) {
+    Vector2i v0(s1.x - s0.x, s1.y - s0.y);
+    Vector2i v1(s2.x - s0.x, s2.y - s0.y);
+    Vector2i v2(p.x - s0.x, p.y - s0.y);
+    float den = v0.x * v1.y - v1.x * v0.y;
+
+    return {(v2.x * v1.y - v1.x * v2.y) / den,(v0.x * v2.y - v2.x * v0.y) / den,1.0f - ((v2.x * v1.y - v1.x * v2.y) / den) - ((v0.x * v2.y - v2.x * v0.y) / den)};
 }

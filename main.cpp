@@ -17,21 +17,31 @@ int main(){
 
 
     //nuage de points
-    Renderer renderer(model,image,"framebufferScatter.tga");
-    renderer.render("scatter");
+    //Renderer renderer(model,image,"framebufferScatter.tga");
+    //renderer.render("scatter");
 
-    renderer.setRandomColorMode(true);
+    //renderer.setRandomColorMode(true);
     //fils de fer
-    renderer.setSavePath("framebufferWire.tga");
-    renderer.render("wire");
+    //renderer.setSavePath("framebufferWire.tga");
+    //renderer.render("wire");
 
     //triangles pleins
-    renderer.setSavePath("framebufferTriangle.tga");
-    renderer.render("triangle");
+    //renderer.setSavePath("framebufferTriangle.tga");
+    //renderer.render("triangle");
 
     //flat shading
-    renderer.setSavePath("framebufferFlatShading.tga");
+    Renderer renderer(model,image,"framebufferFlatShading.tga");
+    //renderer.setColor(red);
+    //renderer.setSavePath("framebufferFlatShading.tga");
     renderer.render("flatshading");
+
+
+
+
+    // scene "2d mesh"
+    //renderer.rasterize(Vector2i(20, 34),   Vector2i(744, 400), image, red);
+    //renderer.rasterize(Vector2i(120, 434), Vector2i(444, 400), image, green);
+    //renderer.rasterize(Vector2i(330, 463), Vector2i(594, 200), image, blue);
 
     return 0;
 }
