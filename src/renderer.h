@@ -32,14 +32,15 @@ public:
     Renderer(Model model, TGAImage image, string save_path);
 
     void render();
+    void triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList);
+    //not used anymore
     static void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
     static void line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColor color);
+    static TGAColor getRandomColor();
+    void setRandomColorMode(bool status);
     void setColor(TGAColor color);
     void setSavePath(string path);
     void setModel(Model model);
-    static TGAColor getRandomColor();
-    void setRandomColorMode(bool status);
-    void triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList);
 };
 
 

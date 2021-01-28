@@ -14,6 +14,7 @@ int main(){
     Model model("obj/african_head/african_head.obj");
     //Model model("obj/diablo3_pose/diablo3_pose.obj");
     //Model model("obj/boggie/body.obj");
+    //Model model("obj/floor.obj");
 
     Renderer renderer(model,image,"out.tga");
     renderer.render();
