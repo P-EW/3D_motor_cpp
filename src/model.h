@@ -38,7 +38,8 @@ public:
     int getFacesSize();
     vector<Vector3i> getFaceAt(int n);
 
-    TGAColor getColorAt(int x, int y);
+    Vector3f getVtAt(int n);
+    TGAColor getColorAt(float x, float y);
 };
 
 

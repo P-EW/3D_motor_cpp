@@ -10,91 +10,32 @@ Renderer::Renderer(Model model, TGAImage image, string save_path) {
     }
 }
 
-void Renderer::render(const string& type) {
-
-    if(type =="scatter"){
-        int posx, posy;
-        Vector3f tempVertex;
-        for(int i = 0; i < r_model.getVerticesSize(); i++){
-            tempVertex = r_model.getVertexAt(i);
-            posx = (tempVertex.x+1) *(r_image.get_width()/2.);
-            posy = (tempVertex.y+1) *(r_image.get_height()/2.);
-
-            if(isRandomColors){
-                r_image.set(posx, posy, getRandomColor());
-            }
-            else{
-                r_image.set(posx, posy, r_color);
-            }
+void Renderer::render() {
+    Vector3f lightDir, crossP;
+    lightDir = {0,0,1};
+    vector<Vector3i> tempFace;
+    vector<Vector3f> v3f, vertices;
+    vector<Vector3f> vtList;
+    float norm, dotP;
+    for(int i = 0; i < r_model.getFacesSize(); i++){
+        tempFace = r_model.getFaceAt(i);
+        for(int j = 0; j < 3 ; j++){
+            vtList.push_back(r_model.getVtAt(tempFace[j].y));
+            v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
+            vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
         }
-        r_image.write_tga_file(r_save_path);
-    }
-    else if(type =="wire"){
-        vector<Vector3i> tempFace;
-        int x0, x1, y0, y1;
-        for(int i = 0; i < r_model.getFacesSize(); i++){
-            tempFace = r_model.getFaceAt(i);
-            for(int j = 0; j < 3 ; j++){
-                x0 = (r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.);
-                y0 = (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.);
-                x1 = (r_model.getVertexAt(tempFace.at((j+1)%3).x).x +1) *(r_image.get_width()/2.);
-                y1 = (r_model.getVertexAt(tempFace.at((j+1)%3).x).y +1) *(r_image.get_height()/2.);
-
-                if(isRandomColors){
-                    line(x0,y0,x1,y1, r_image, getRandomColor());
-                }
-                else{
-                    line(x0,y0,x1,y1, r_image, r_color);
-                }
-            }
+        crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
+        norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);
+        crossP = {crossP.x / norm, crossP.y / norm , crossP.z / norm};
+        dotP = dotProduct(crossP, lightDir);
+        if(dotP >= 0) {
+            triangle(vertices, r_image, dotP, vtList);
         }
-        r_image.write_tga_file(r_save_path);
+        vertices.clear();
+        v3f.clear();
+        vtList.clear();
     }
-    else if(type =="triangle"){
-        vector<Vector3i> tempFace;
-        int x, y;
-        vector<Vector3f> vertices;
-        for(int i = 0; i < r_model.getFacesSize(); i++){
-            tempFace = r_model.getFaceAt(i);
-            for(int j = 0; j < 3 ; j++){
-                vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
-            }
-            if(isRandomColors){
-                triangle(vertices, r_image, getRandomColor());
-            }
-            else{
-                triangle(vertices, r_image, r_color);
-            }
-            vertices.clear();
-        }
-        r_image.write_tga_file(r_save_path);
-    }
-    else if(type =="flatshading"){
-        Vector3f lightDir, crossP;
-        lightDir = {0,0,1};
-        vector<Vector3i> tempFace;
-        vector<Vector3f> v3f;
-        vector<Vector3f> vertices;
-        float norm, dotP;
-        for(int i = 0; i < r_model.getFacesSize(); i++){
-            tempFace = r_model.getFaceAt(i);
-            for(int j = 0; j < 3 ; j++){
-                v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
-                vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
-            }
-            crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
-            norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);
-            crossP = {crossP.x / norm, crossP.y / norm , crossP.z / norm};
-            dotP = dotProduct(crossP, lightDir);
-            if(dotP >= 0) {
-                r_color = r_model.getColorAt(vertices[0].x, vertices[0].y);
-                triangle(vertices, r_image, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
-            }
-            vertices.clear();
-            v3f.clear();
-        }
-        r_image.write_tga_file(r_save_path);
-    }
+    r_image.write_tga_file(r_save_path);
 }
 
 void Renderer::line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color){
@@ -135,7 +76,7 @@ void Renderer::line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColo
     line(vertex0.x, vertex0.y, vertex1.x, vertex1.y, image, color);
 }
 
-void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, TGAColor color) {
+void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList) {
     //detect the square occupied by the triangle
     float minX= INT_MAX , minY = INT_MAX;
     float maxX = INT_MIN, maxY = INT_MIN;
@@ -147,17 +88,26 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, TGAColor col
     }
 
     //draw the triangle
-    Vector3f temp;
-    float z;
+    Vector3f pointbarycenter;
+    float z, xi, yi;
     for(int y = minY; y <= maxY; y++){
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
-                temp = barycenter({x,y},vertices[0],vertices[1],vertices[2]);
-                z = temp.x*vertices[0].z + temp.y* vertices[1].z + temp.z * vertices[2].z;
+                pointbarycenter = barycenter({x-0.f, y-0.f, 0}, vertices[0], vertices[1], vertices[2]);
+                z = pointbarycenter.x * vertices[0].z + pointbarycenter.y * vertices[1].z + pointbarycenter.z * vertices[2].z;
                 //Z-buffer
                 if(zBuffer[x+y*image.get_height()] < z){
                     zBuffer[x+y*image.get_height()] = z;
-                    image.set(x, y, color);
+
+                    //Perhaps you also can try barycentric coordinates
+                    // - find these coordinates for point in the first system,
+                    // then calculate cartesian coordinates using vertices in the second system.
+                    // Result should be the same, because barycentric coordinates are affine invariant.
+                    xi = pointbarycenter.x * (vtList[0].x) + pointbarycenter.y * (vtList[1].x) + pointbarycenter.z * (vtList[2].x);
+                    yi = pointbarycenter.x * (vtList[0].y) + pointbarycenter.y * (vtList[1].y) + pointbarycenter.z * (vtList[2].y);
+                    r_color = r_model.getColorAt(xi, yi);
+
+                    image.set(x, y, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
                 }
             }
         }
@@ -214,11 +164,14 @@ void Renderer::setModel(Model model) {
     r_model = std::move(model);
 }
 
-Vector3f Renderer::barycenter(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2) {
-    Vector2i v0(s1.x - s0.x, s1.y - s0.y);
-    Vector2i v1(s2.x - s0.x, s2.y - s0.y);
-    Vector2i v2(p.x - s0.x, p.y - s0.y);
+Vector3f Renderer::barycenter(Vector3f p, Vector3f s0, Vector3f s1, Vector3f s2) {
+    Vector3f v0 = {s1.x - s0.x, s1.y - s0.y , s1.z - s0.z};
+    Vector3f v1 = {s2.x - s0.x, s2.y - s0.y , s2.z - s0.z};
+    Vector3f v2 = {p.x - s0.x, p.y - s0.y, p.z - s0.z};
     float den = v0.x * v1.y - v1.x * v0.y;
 
-    return {(v2.x * v1.y - v1.x * v2.y) / den,(v0.x * v2.y - v2.x * v0.y) / den,1.0f - ((v2.x * v1.y - v1.x * v2.y) / den) - ((v0.x * v2.y - v2.x * v0.y) / den)};
+    float a = (v2.x * v1.y - v1.x * v2.y) / den;
+    float b = (v0.x * v2.y - v2.x * v0.y) / den;
+
+    return {1.0f - a - b, a, b};
 }

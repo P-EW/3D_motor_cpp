@@ -5,6 +5,7 @@ Model::Model(const string& path) {
     if(!textureDiffuse.read_tga_file(path.substr(0, path.size()-4 )+"_diffuse.tga")){
         cout << "texture introuvable" << endl;
     }
+    textureDiffuse.flip_vertically();
 
     ifstream file(path);
     if (file.is_open()) {
@@ -85,6 +86,10 @@ int Model::getFacesSize() {
     return faces.size();
 }
 
-TGAColor Model::getColorAt(int x, int y) {
-    return textureDiffuse.get(x,y);
+TGAColor Model::getColorAt(float x, float y) {
+    return textureDiffuse.get(x*(textureDiffuse.get_width()), y*(textureDiffuse.get_height()));
+}
+
+Vector3f Model::getVtAt(int n) {
+    return vt.at(n);
 }

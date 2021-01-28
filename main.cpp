@@ -2,8 +2,8 @@
 #include "src/model.h"
 #include "src/renderer.h"
 
-constexpr int width  = 800;
-constexpr int height = 800;
+constexpr int width  = 1024;
+constexpr int height = 1024;
 const TGAColor white = {255, 255, 255, 255};
 const TGAColor red   = {255,   0,   0, 255};
 const TGAColor green = {  0, 255,   0, 255};
@@ -15,23 +15,8 @@ int main(){
     //Model model("obj/diablo3_pose/diablo3_pose.obj");
     //Model model("obj/boggie/body.obj");
 
-
-    //nuage de points
-    Renderer renderer(model,image,"framebufferScatter.tga");
-    renderer.render("scatter");
-
-    renderer.setRandomColorMode(true);
-    //fils de fer
-    renderer.setSavePath("framebufferWire.tga");
-    renderer.render("wire");
-
-    //triangles pleins
-    renderer.setSavePath("framebufferTriangle.tga");
-    renderer.render("triangle");
-
-    //flat shading
-    renderer.setSavePath("framebufferFlatShading.tga");
-    renderer.render("flatshading");
+    Renderer renderer(model,image,"out.tga");
+    renderer.render();
 
     return 0;
 }
