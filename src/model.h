@@ -14,11 +14,17 @@ struct Vector3f{
     float y =0;
     float z =0;
 };
+struct Vector3i{
+    int x = 0;
+    int y = 0;
+    int z = 0;
+};
 
 class Model {
 protected:
     vector<Vector3f> vertices;
-    vector<vector<int>> faces;
+    vector<vector<Vector3i>> faces;
+    vector<Vector3f> vt;
 
 public:
     Model() = default;
@@ -28,7 +34,7 @@ public:
     Vector3f getVertexAt(int n);
 
     int getFacesSize();
-    vector<int> getFaceAt(int n);
+    vector<Vector3i> getFaceAt(int n);
 };
 
 

@@ -33,14 +33,6 @@ int main(){
     renderer.setSavePath("framebufferFlatShading.tga");
     renderer.render("flatshading");
 
-
-
-
-    // scene "2d mesh"
-    //renderer.rasterize(Vector2i(20, 34),   Vector2i(744, 400), image, red);
-    //renderer.rasterize(Vector2i(120, 434), Vector2i(444, 400), image, green);
-    //renderer.rasterize(Vector2i(330, 463), Vector2i(594, 200), image, blue);
-
     return 0;
 }
 

@@ -30,15 +30,15 @@ void Renderer::render(const string& type) {
         r_image.write_tga_file(r_save_path);
     }
     else if(type =="wire"){
-        vector<int> tempFace;
+        vector<Vector3i> tempFace;
         int x0, x1, y0, y1;
         for(int i = 0; i < r_model.getFacesSize(); i++){
             tempFace = r_model.getFaceAt(i);
             for(int j = 0; j < 3 ; j++){
-                x0 = (r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.);
-                y0 = (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.);
-                x1 = (r_model.getVertexAt(tempFace.at((j+1)%3)).x +1) *(r_image.get_width()/2.);
-                y1 = (r_model.getVertexAt(tempFace.at((j+1)%3)).y +1) *(r_image.get_height()/2.);
+                x0 = (r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.);
+                y0 = (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.);
+                x1 = (r_model.getVertexAt(tempFace.at((j+1)%3).x).x +1) *(r_image.get_width()/2.);
+                y1 = (r_model.getVertexAt(tempFace.at((j+1)%3).x).y +1) *(r_image.get_height()/2.);
 
                 if(isRandomColors){
                     line(x0,y0,x1,y1, r_image, getRandomColor());
@@ -51,13 +51,13 @@ void Renderer::render(const string& type) {
         r_image.write_tga_file(r_save_path);
     }
     else if(type =="triangle"){
-        vector<int> tempFace;
+        vector<Vector3i> tempFace;
         int x, y;
         vector<Vector3f> vertices;
         for(int i = 0; i < r_model.getFacesSize(); i++){
             tempFace = r_model.getFaceAt(i);
             for(int j = 0; j < 3 ; j++){
-                vertices.push_back({(r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j)).z});
+                vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
             }
             if(isRandomColors){
                 triangle(vertices, r_image, getRandomColor());
@@ -72,15 +72,15 @@ void Renderer::render(const string& type) {
     else if(type =="flatshading"){
         Vector3f lightDir, crossP;
         lightDir = {0,0,1};
-        vector<int> tempFace;
+        vector<Vector3i> tempFace;
         vector<Vector3f> v3f;
         vector<Vector3f> vertices;
         float norm, dotP;
         for(int i = 0; i < r_model.getFacesSize(); i++){
             tempFace = r_model.getFaceAt(i);
             for(int j = 0; j < 3 ; j++){
-                v3f.push_back(r_model.getVertexAt(tempFace.at(j)));
-                vertices.push_back({(r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j)).z});
+                v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
+                vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
             }
             crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
             norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);

@@ -5,42 +5,59 @@ Model::Model(const string& path) {
     ifstream file(path);
 
     if (file.is_open()) {
-        string fline, tempStr;
+        string fline, tempStr, s;
         // ajout d'un sommet inutile (en pos 0) car les sommets vont de 1 à n
         vertices.push_back({0,0,0});
-        float vertex[3];
-        stringstream strStrm;
-        vector<int> face;
+        vt.push_back({0,0,0});
+        vector<float> vertex;
+        stringstream strStrm, ss;
+        vector<Vector3i> face;
+        vector<string> temp;
         float tempFloat;
-        int cpt;
         while (getline(file, fline)) {
             if(fline.length() > 0 && !fline.rfind("v ",0)) {
-                cpt = 0;
                 strStrm << fline;
                 while (!strStrm.eof()) {
                     strStrm >> tempStr;
-                    if (stringstream(tempStr) >> tempFloat && cpt < 3) { //limitation to triangles
-                        vertex[cpt] = tempFloat;
-                        cpt++;
+                    if (stringstream(tempStr) >> tempFloat) {
+                        vertex.push_back(tempFloat);
                     }
                     tempStr = ""; //clear temp string
                 }
                 strStrm.clear();
                 vertices.push_back({vertex[0], vertex[1], vertex[2]});
+                vertex.clear();
+            }
+            else if(fline.length() > 0 && !fline.rfind("vt ",0)) {
+                strStrm << fline;
+                while (!strStrm.eof()) {
+                    strStrm >> tempStr;
+                    if (stringstream(tempStr) >> tempFloat) { //limitation to triangles
+                        vertex.push_back(tempFloat);
+                    }
+                    tempStr = ""; //clear temp string
+                }
+                strStrm.clear();
+                vt.push_back({vertex[0], vertex[1], vertex[2]});
+                vertex.clear();
             }
             else if(fline.length() > 0 && !fline.rfind("f ",0)){
                 strStrm << fline;
                 while (!strStrm.eof()) {
                     strStrm >> tempStr;
                     if (stringstream(tempStr) >> tempFloat) {
-                        face.push_back(tempFloat);
+                        ss = stringstream (tempStr);
+                        s = "";
+                        while (std::getline(ss, s, '/')) {
+                            temp.push_back(s);
+                        }
+                        face.push_back({stoi(temp[0]), stoi(temp[1]), stoi(temp[2])});
+                        temp.clear();
                     }
                     tempStr = ""; //clear temp string
                 }
                 strStrm.clear();
-                if(face.size() == 3){ // we only do triangles here
-                    faces.push_back(face);
-                }
+                faces.push_back(face);
                 face.clear();
             }
         }
@@ -57,7 +74,7 @@ int Model::getVerticesSize() {
     return vertices.size();
 }
 
-vector<int> Model::getFaceAt(int n) {
+vector<Vector3i> Model::getFaceAt(int n) {
     return faces.at(n);
 }
 
