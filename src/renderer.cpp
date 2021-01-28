@@ -50,17 +50,14 @@ void Renderer::render(const string& type) {
         }
         r_image.write_tga_file(r_save_path);
     }
-    /*
     else if(type =="triangle"){
         vector<int> tempFace;
         int x, y;
-        vector<Vector2i> vertices;
+        vector<Vector3f> vertices;
         for(int i = 0; i < r_model.getFacesSize(); i++){
             tempFace = r_model.getFaceAt(i);
             for(int j = 0; j < 3 ; j++){
-                x = (r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.);
-                y = (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.);
-                vertices.emplace_back(x,y);
+                vertices.push_back({(r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j)).z});
             }
             if(isRandomColors){
                 triangle(vertices, r_image, getRandomColor());
@@ -72,19 +69,18 @@ void Renderer::render(const string& type) {
         }
         r_image.write_tga_file(r_save_path);
     }
-     */
     else if(type =="flatshading"){
         Vector3f lightDir, crossP;
         lightDir = {0,0,1};
         vector<int> tempFace;
         vector<Vector3f> v3f;
-        vector<Vector2i> vertices;
+        vector<Vector3f> vertices;
         float norm, dotP;
         for(int i = 0; i < r_model.getFacesSize(); i++){
             tempFace = r_model.getFaceAt(i);
             for(int j = 0; j < 3 ; j++){
                 v3f.push_back(r_model.getVertexAt(tempFace.at(j)));
-                vertices.emplace_back((r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.), (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.));
+                vertices.push_back({(r_model.getVertexAt(tempFace.at(j)).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j)).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j)).z});
             }
             crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
             norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);
@@ -138,7 +134,7 @@ void Renderer::line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColo
     line(vertex0.x, vertex0.y, vertex1.x, vertex1.y, image, color);
 }
 
-void Renderer::triangle(vector<Vector2i> vertices, TGAImage &image, TGAColor color) {
+void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, TGAColor color) {
     //detect the square occupied by the triangle
     float minX= INT_MAX , minY = INT_MAX;
     float maxX = INT_MIN, maxY = INT_MIN;
@@ -156,10 +152,10 @@ void Renderer::triangle(vector<Vector2i> vertices, TGAImage &image, TGAColor col
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
                 temp = barycenter({x,y},vertices[0],vertices[1],vertices[2]);
-                //z = temp.x*vertices[0].z + temp.y* vertices[1].z + temp.z * vertices[2].z;
+                z = temp.x*vertices[0].z + temp.y* vertices[1].z + temp.z * vertices[2].z;
                 //Z-buffer
-                if(zBuffer[x+y*image.get_height()] < temp.z){
-                    zBuffer[x+y*image.get_height()] = temp.z;
+                if(zBuffer[x+y*image.get_height()] < z){
+                    zBuffer[x+y*image.get_height()] = z;
                     image.set(x, y, color);
                 }
             }
@@ -167,7 +163,7 @@ void Renderer::triangle(vector<Vector2i> vertices, TGAImage &image, TGAColor col
     }
 }
 
-bool Renderer::pointInTriangle(Vector2i p, Vector2i s0, Vector2i s1, Vector2i s2) {
+bool Renderer::pointInTriangle(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2) {
     //barycentric  method
     float s = s0.y * s2.x - s0.x * s2.y + (s2.y - s0.y) * p.x + (s0.x - s2.x) * p.y;
     float t = s0.x * s1.y - s0.y * s1.x + (s0.y - s1.y) * p.x + (s1.x - s0.x) * p.y;
@@ -183,6 +179,10 @@ void Renderer::setColor(TGAColor color) {
 }
 
 void Renderer::setSavePath(string path) {
+    zBuffer = new float[r_image.get_height() * r_image.get_width()];
+    for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
+        zBuffer[i] = INT_MIN;
+    }
     r_image.clear();
     r_save_path = move(path);
 }
@@ -205,11 +205,15 @@ float Renderer::dotProduct(Vector3f vectA, Vector3f vectB) {
 }
 
 void Renderer::setModel(Model model) {
+    zBuffer = new float[r_image.get_height() * r_image.get_width()];
+    for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
+        zBuffer[i] = INT_MIN;
+    }
     r_image.clear();
     r_model = std::move(model);
 }
 
-Vector3f Renderer::barycenter(Vector2i p, Vector2i s0, Vector2i s1, Vector2i s2) {
+Vector3f Renderer::barycenter(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2) {
     Vector2i v0(s1.x - s0.x, s1.y - s0.y);
     Vector2i v1(s2.x - s0.x, s2.y - s0.y);
     Vector2i v2(p.x - s0.x, p.y - s0.y);
