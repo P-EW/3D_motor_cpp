@@ -87,6 +87,7 @@ void Renderer::render(const string& type) {
             crossP = {crossP.x / norm, crossP.y / norm , crossP.z / norm};
             dotP = dotProduct(crossP, lightDir);
             if(dotP >= 0) {
+                r_color = r_model.getColorAt(vertices[0].x, vertices[0].y);
                 triangle(vertices, r_image, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
             }
             vertices.clear();

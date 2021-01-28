@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include "../libs/tgaimage.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ protected:
     vector<Vector3f> vertices;
     vector<vector<Vector3i>> faces;
     vector<Vector3f> vt;
+    TGAImage textureDiffuse;
 
 public:
     Model() = default;
@@ -35,6 +37,8 @@ public:
 
     int getFacesSize();
     vector<Vector3i> getFaceAt(int n);
+
+    TGAColor getColorAt(int x, int y);
 };
 
 

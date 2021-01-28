@@ -2,8 +2,11 @@
 
 
 Model::Model(const string& path) {
-    ifstream file(path);
+    if(!textureDiffuse.read_tga_file(path.substr(0, path.size()-4 )+"_diffuse.tga")){
+        cout << "texture introuvable" << endl;
+    }
 
+    ifstream file(path);
     if (file.is_open()) {
         string fline, tempStr, s;
         // ajout d'un sommet inutile (en pos 0) car les sommets vont de 1 à n
@@ -80,4 +83,8 @@ vector<Vector3i> Model::getFaceAt(int n) {
 
 int Model::getFacesSize() {
     return faces.size();
+}
+
+TGAColor Model::getColorAt(int x, int y) {
+    return textureDiffuse.get(x,y);
 }
