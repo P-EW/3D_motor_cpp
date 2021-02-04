@@ -24,10 +24,12 @@ void Renderer::render() {
             v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
             vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
         }
+        // start of flat shading calc
         crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
         norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);
         crossP = {crossP.x / norm, crossP.y / norm , crossP.z / norm};
-        dotP = dotProduct(crossP, lightDir);
+        dotP = dotProduct(crossP, lightDir); //light intensity of triangle
+        // end of flat shading
         if(dotP >= 0) {
             triangle(vertices, r_image, dotP, vtList);
         }

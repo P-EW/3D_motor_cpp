@@ -26,6 +26,7 @@ protected:
     vector<Vector3f> vertices;
     vector<vector<Vector3i>> faces;
     vector<Vector3f> vt;
+    vector<Vector3f> vn;
     TGAImage textureDiffuse;
 
 public:
@@ -40,6 +41,8 @@ public:
 
     Vector3f getVtAt(int n);
     TGAColor getColorAt(float x, float y);
+
+    Vector3f getVnAt(int n);
 };
 
 

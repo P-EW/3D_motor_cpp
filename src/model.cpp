@@ -2,10 +2,12 @@
 
 
 Model::Model(const string& path) {
+    /*
     if(!textureDiffuse.read_tga_file(path.substr(0, path.size()-4 )+"_diffuse.tga")){
         cout << "texture introuvable" << endl;
     }
     textureDiffuse.flip_vertically();
+     */
 
     ifstream file(path);
     if (file.is_open()) {
@@ -13,6 +15,7 @@ Model::Model(const string& path) {
         // ajout d'un sommet inutile (en pos 0) car les sommets vont de 1 à n
         vertices.push_back({0,0,0});
         vt.push_back({0,0,0});
+        vn.push_back({0,0,0});
         vector<float> vertex;
         stringstream strStrm, ss;
         vector<Vector3i> face;
@@ -36,13 +39,26 @@ Model::Model(const string& path) {
                 strStrm << fline;
                 while (!strStrm.eof()) {
                     strStrm >> tempStr;
-                    if (stringstream(tempStr) >> tempFloat) { //limitation to triangles
+                    if (stringstream(tempStr) >> tempFloat) {
                         vertex.push_back(tempFloat);
                     }
                     tempStr = ""; //clear temp string
                 }
                 strStrm.clear();
                 vt.push_back({vertex[0], vertex[1], vertex[2]});
+                vertex.clear();
+            }
+            else if(fline.length() > 0 && !fline.rfind("vn ",0)) {
+                strStrm << fline;
+                while (!strStrm.eof()) {
+                    strStrm >> tempStr;
+                    if (stringstream(tempStr) >> tempFloat) {
+                        vertex.push_back(tempFloat);
+                    }
+                    tempStr = ""; //clear temp string
+                }
+                strStrm.clear();
+                vn.push_back({vertex[0], vertex[1], vertex[2]});
                 vertex.clear();
             }
             else if(fline.length() > 0 && !fline.rfind("f ",0)){
@@ -87,9 +103,13 @@ int Model::getFacesSize() {
 }
 
 TGAColor Model::getColorAt(float x, float y) {
-    return textureDiffuse.get(x*(textureDiffuse.get_width()), y*(textureDiffuse.get_height()));
+    return (textureDiffuse.get_width() > 1) ? textureDiffuse.get(x*(textureDiffuse.get_width()), y*(textureDiffuse.get_height())) : TGAColor(255,255,255);
 }
 
 Vector3f Model::getVtAt(int n) {
     return vt.at(n);
+}
+
+Vector3f Model::getVnAt(int n) {
+    return vn.at(n);
 }
