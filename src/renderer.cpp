@@ -11,18 +11,16 @@ Renderer::Renderer(Model model, TGAImage image, string save_path) {
 }
 
 void Renderer::render() {
-    Vector3f lightDir, crossP;
-    lightDir = {0,0,1};
+    Vector3f crossP;
     vector<Vector3i> tempFace;
-    vector<Vector3f> v3f, vertices;
-    vector<Vector3f> vtList;
+    vector<Vector3f> v3f, vertices, vtList;
     float norm, dotP;
     for(int i = 0; i < r_model.getFacesSize(); i++){
         tempFace = r_model.getFaceAt(i);
         for(int j = 0; j < 3 ; j++){
             vtList.push_back(r_model.getVtAt(tempFace[j].y));
             v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
-            vertices.push_back({(r_model.getVertexAt(tempFace.at(j).x).x +1) *(r_image.get_width()/2.f), (r_model.getVertexAt(tempFace.at(j).x).y +1) *(r_image.get_height()/2.f), r_model.getVertexAt(tempFace.at(j).x).z});
+            vertices.push_back({(centralProjection(r_model.getVertexAt(tempFace.at(j).x)).x +1) *(r_image.get_width()/2.f), (centralProjection(r_model.getVertexAt(tempFace.at(j).x)).y +1) *(r_image.get_height()/2.f), centralProjection(r_model.getVertexAt(tempFace.at(j).x)).z});
         }
         // start of flat shading calc
         crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
@@ -50,6 +48,10 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
         if(vertices[i].y < minY) minY = vertices[i].y;
         if(vertices[i].y > maxY) maxY = vertices[i].y;
     }
+    if(minY < 0) minY = 0;
+    if(minX < 0) minX = 0;
+    if(maxY > r_image.get_height()) maxY = r_image.get_height();
+    if(maxX > r_image.get_width()) maxX = r_image.get_width();
 
     //draw the triangle
     Vector3f pointbarycenter;
@@ -57,6 +59,7 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
     for(int y = minY; y <= maxY; y++){
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
+                //cout << "aled " << minX << " " << maxX <<" y " << minY << " " << maxY << "{" << x <<" , " << y << "}"<<endl;
                 pointbarycenter = barycenter({x-0.f, y-0.f, 0}, vertices[0], vertices[1], vertices[2]);
                 z = pointbarycenter.x * vertices[0].z + pointbarycenter.y * vertices[1].z + pointbarycenter.z * vertices[2].z;
                 //Z-buffer
@@ -84,6 +87,11 @@ bool Renderer::pointInTriangle(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2
 
     float A = -s1.y * s2.x + s0.y * (s2.x - s1.x) + s0.x * (s1.y - s2.y) + s1.x * s2.y;
     return A < 0 ? (s <= 0 && s + t >= A) : (s >= 0 && s + t <= A);
+}
+
+Vector3f Renderer::centralProjection(Vector3f point) {
+    float cameraDist = 1-(point.z/camera.z);
+    return {point.x/cameraDist, point.y/cameraDist, point.z/cameraDist};
 }
 
 Vector3f Renderer::crossProduct(Vector3f vectA, Vector3f vectB) {

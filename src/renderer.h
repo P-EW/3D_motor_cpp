@@ -22,11 +22,14 @@ protected:
     TGAImage r_image;
     TGAColor r_color = {255, 255, 255, 255}; //default is white
     float* zBuffer;
+    Vector3f lightDir = {0,0,1};
+    Vector3f camera = {0,0,3};
     bool isRandomColors = false;
     static bool pointInTriangle(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2);
     static Vector3f crossProduct(Vector3f vectA, Vector3f vectB);
     static float dotProduct(Vector3f vectA, Vector3f vectB);
     static Vector3f barycenter(Vector3f p, Vector3f s0, Vector3f s1, Vector3f s2);
+    Vector3f centralProjection(Vector3f point);
 
 public:
     Renderer(Model model, TGAImage image, string save_path);
