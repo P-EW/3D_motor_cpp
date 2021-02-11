@@ -18,7 +18,9 @@ int main(){
 
     Renderer renderer(model,image,"out.tga");
     renderer.render();
-
+    model = Model("obj/african_head/african_head_eye_inner.obj");
+    renderer.setModel(model);
+    renderer.render();
     return 0;
 }
 

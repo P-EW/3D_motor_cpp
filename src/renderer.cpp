@@ -8,24 +8,52 @@ Renderer::Renderer(Model model, TGAImage image, string save_path) {
     for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
         zBuffer[i] = INT_MIN;
     }
+    modelView = lookat(camera,center,{0,1,0});
+    ViewPort = viewport(r_image.get_width()/8, r_image.get_height()/8, r_image.get_width()*3/4, r_image.get_height()*3/4);
+}
+
+Matrix Renderer::viewport(int x, int y, int w, int h) {
+    Matrix m = Matrix::identity(4);
+    m[0][3] = x+w/2.f;
+    m[1][3] = y+h/2.f;
+    m[2][3] = 255/2.f;
+
+    m[0][0] = w/2.f;
+    m[1][1] = h/2.f;
+    m[2][2] = 255/2.f;
+    return m;
+}
+Matrix Renderer::v2m(Vec3f v) {
+    Matrix m(4, 1);
+    m[0][0] = v.x;
+    m[1][0] = v.y;
+    m[2][0] = v.z;
+    m[3][0] = 1.f;
+    return m;
+}
+Vec3f Renderer::m2v(Matrix m) {
+    return Vec3f(m[0][0]/m[3][0], m[1][0]/m[3][0], m[2][0]/m[3][0]);
 }
 
 void Renderer::render() {
     Vector3f crossP;
     vector<Vector3i> tempFace;
-    vector<Vector3f> v3f, vertices, vtList;
-    float norm, dotP;
+    vector<Vector3f> v3f, vtList;
+    vector<Vector3f> vertices;
+    Vec3f tempForcalc;
+    float dotP;
     for(int i = 0; i < r_model.getFacesSize(); i++){
         tempFace = r_model.getFaceAt(i);
         for(int j = 0; j < 3 ; j++){
             vtList.push_back(r_model.getVtAt(tempFace[j].y));
-            v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
-            vertices.push_back({(centralProjection(r_model.getVertexAt(tempFace.at(j).x)).x +1) *(r_image.get_width()/2.f), (centralProjection(r_model.getVertexAt(tempFace.at(j).x)).y +1) *(r_image.get_height()/2.f), centralProjection(r_model.getVertexAt(tempFace.at(j).x)).z});
+            v3f.push_back(r_model.getVertexAtVector3f(tempFace.at(j).x));
+            //vertices.push_back({(centralProjection(r_model.getVertexAt(tempFace.at(j).x)).x +1) *(r_image.get_width()/2.f), (centralProjection(r_model.getVertexAt(tempFace.at(j).x)).y +1) *(r_image.get_height()/2.f), centralProjection(r_model.getVertexAt(tempFace.at(j).x)).z});
+            tempForcalc = m2v(ViewPort*Projection*modelView*v2m(r_model.getVertexAt(tempFace.at(j).x)));
+            vertices.push_back({tempForcalc.x,tempForcalc.y, tempForcalc.z});
         }
         // start of flat shading calc
         crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
-        norm = sqrt(crossP.x * crossP.x + crossP.y * crossP.y + crossP.z * crossP.z);
-        crossP = {crossP.x / norm, crossP.y / norm , crossP.z / norm};
+        crossP = normalize(crossP);
         dotP = dotProduct(crossP, lightDir); //light intensity of triangle
         // end of flat shading
         if(dotP >= 0) {
@@ -59,7 +87,6 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
     for(int y = minY; y <= maxY; y++){
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
-                //cout << "aled " << minX << " " << maxX <<" y " << minY << " " << maxY << "{" << x <<" , " << y << "}"<<endl;
                 pointbarycenter = barycenter({x-0.f, y-0.f, 0}, vertices[0], vertices[1], vertices[2]);
                 z = pointbarycenter.x * vertices[0].z + pointbarycenter.y * vertices[1].z + pointbarycenter.z * vertices[2].z;
                 //Z-buffer
@@ -71,6 +98,7 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
                     xi = pointbarycenter.x * (vtList[0].x) + pointbarycenter.y * (vtList[1].x) + pointbarycenter.z * (vtList[2].x);
                     yi = pointbarycenter.x * (vtList[0].y) + pointbarycenter.y * (vtList[1].y) + pointbarycenter.z * (vtList[2].y);
                     r_color = r_model.getColorAt(xi, yi);
+
                     image.set(x, y, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
                 }
             }
@@ -112,6 +140,35 @@ Vector3f Renderer::barycenter(Vector3f p, Vector3f s0, Vector3f s1, Vector3f s2)
     float b = (v0.x * v2.y - v2.x * v0.y) / den;
 
     return {1.0f - a - b, a, b};
+}
+
+Vector3f Renderer::normalize(Vector3f vec) {
+    float length = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+    return {vec.x/length, vec.y/length, vec.z/length};
+}
+
+Matrix Renderer::lookat(Vector3f eye, Vector3f center, Vector3f up) {
+    Vector3f z = normalize({eye.x-center.x,eye.y-center.y,eye.z-center.z});
+    Vector3f x = normalize(crossProduct(up,z));
+    Vector3f y = normalize(crossProduct(z,x));
+
+    Matrix Minv = Matrix::identity(4);
+    Minv[0][0] = x.x;
+    Minv[1][0] = y.x;
+    Minv[2][0] = z.x;
+    Minv[0][3] = -center.x;
+
+    Minv[0][1] = x.y;
+    Minv[1][1] = y.y;
+    Minv[2][1] = z.y;
+    Minv[1][3] = -center.y;
+
+    Minv[0][2] = x.z;
+    Minv[1][2] = y.z;
+    Minv[2][2] = z.z;
+    Minv[2][3] = -center.z;
+
+    return Minv;
 }
 
 //not used anymore
@@ -176,10 +233,10 @@ void Renderer::setSavePath(string path) {
 }
 
 void Renderer::setModel(Model model) {
-    zBuffer = new float[r_image.get_height() * r_image.get_width()];
-    for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
-        zBuffer[i] = INT_MIN;
-    }
-    r_image.clear();
+    //zBuffer = new float[r_image.get_height() * r_image.get_width()];
+    //for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
+    //    zBuffer[i] = INT_MIN;
+    //}
+    //r_image.clear();
     r_model = std::move(model);
 }

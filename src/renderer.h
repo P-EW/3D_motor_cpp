@@ -5,6 +5,8 @@
 #include <cmath>
 #include <algorithm>
 #include "../libs/tgaimage.h"
+//used only for the matrix operations
+#include "../libs/geometry.h"
 
 struct Vector2i{
     Vector2i(int x_, int y_){
@@ -23,19 +25,27 @@ protected:
     TGAColor r_color = {255, 255, 255, 255}; //default is white
     float* zBuffer;
     Vector3f lightDir = {0,0,1};
-    Vector3f camera = {0,0,3};
+    Vector3f camera = {2,0,3};
+    Vector3f center = {0,0,0};
+    Matrix Projection = Matrix::identity(4);
+    Matrix modelView;
+    Matrix ViewPort;
     bool isRandomColors = false;
     static bool pointInTriangle(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2);
     static Vector3f crossProduct(Vector3f vectA, Vector3f vectB);
     static float dotProduct(Vector3f vectA, Vector3f vectB);
     static Vector3f barycenter(Vector3f p, Vector3f s0, Vector3f s1, Vector3f s2);
     Vector3f centralProjection(Vector3f point);
-
+    Matrix v2m(Vec3f v);
+    Vec3f m2v(Matrix m);
 public:
     Renderer(Model model, TGAImage image, string save_path);
 
     void render();
     void triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList);
+    Matrix lookat(Vector3f eye, Vector3f center, Vector3f up);
+    Vector3f normalize(Vector3f vec);
+    static Matrix viewport(int x, int y, int w, int h);
     //not used anymore
     static void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
     static void line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColor color);

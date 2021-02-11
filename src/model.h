@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include "../libs/tgaimage.h"
+#include "../libs/geometry.h"
 
 using namespace std;
 
@@ -34,7 +35,8 @@ public:
     explicit Model(const string& path);
 
     int getVerticesSize();
-    Vector3f getVertexAt(int n);
+    Vec3f getVertexAt(int n);
+    Vector3f getVertexAtVector3f(int n);
 
     int getFacesSize();
     vector<Vector3i> getFaceAt(int n);
