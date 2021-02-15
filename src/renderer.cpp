@@ -38,35 +38,41 @@ Vec3f Renderer::m2v(Matrix m) {
 void Renderer::render() {
     Vector3f crossP;
     vector<Vector3i> tempFace;
-    vector<Vector3f> v3f, vtList;
-    vector<Vector3f> vertices;
+    vector<Vector3f> v3f, vtList, vertices, vnList;
     Vec3f tempForcalc;
     float dotP;
     for(int i = 0; i < r_model.getFacesSize(); i++){
         tempFace = r_model.getFaceAt(i);
         for(int j = 0; j < 3 ; j++){
             vtList.push_back(r_model.getVtAt(tempFace[j].y));
-            v3f.push_back(r_model.getVertexAtVector3f(tempFace.at(j).x));
+            vnList.push_back(r_model.getVnAt(tempFace[j].z));
+            v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
             //vertices.push_back({(centralProjection(r_model.getVertexAt(tempFace.at(j).x)).x +1) *(r_image.get_width()/2.f), (centralProjection(r_model.getVertexAt(tempFace.at(j).x)).y +1) *(r_image.get_height()/2.f), centralProjection(r_model.getVertexAt(tempFace.at(j).x)).z});
-            tempForcalc = m2v(ViewPort*Projection*modelView*v2m(r_model.getVertexAt(tempFace.at(j).x)));
+            tempForcalc = m2v(ViewPort*Projection*modelView*v2m(vector3f2Vec3f(r_model.getVertexAt(tempFace.at(j).x))));
             vertices.push_back({tempForcalc.x,tempForcalc.y, tempForcalc.z});
         }
         // start of flat shading calc
+        /*
         crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
         crossP = normalize(crossP);
         dotP = dotProduct(crossP, lightDir); //light intensity of triangle
-        // end of flat shading
         if(dotP >= 0) {
-            triangle(vertices, r_image, dotP, vtList);
+            triangle(vertices, r_image, dotP, vtList, vnList);
         }
+        */
+        // end of flat shading
+        // start of Gouraud shading calc
+        triangle(vertices, r_image, -1, vtList, vnList);
+        // end of Gouraud shading
         vertices.clear();
         v3f.clear();
         vtList.clear();
+        vnList.clear();
     }
     r_image.write_tga_file(r_save_path);
 }
 
-void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList) {
+void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList, vector<Vector3f> vnList) {
     //detect the square occupied by the triangle
     float minX= INT_MAX , minY = INT_MAX;
     float maxX = INT_MIN, maxY = INT_MIN;
@@ -83,7 +89,7 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
 
     //draw the triangle
     Vector3f pointbarycenter;
-    float z, xi, yi;
+    float z, xi, yi, xGouraud, yGouraud, zGouraud, gouraudIntensity;
     for(int y = minY; y <= maxY; y++){
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
@@ -99,7 +105,19 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
                     yi = pointbarycenter.x * (vtList[0].y) + pointbarycenter.y * (vtList[1].y) + pointbarycenter.z * (vtList[2].y);
                     r_color = r_model.getColorAt(xi, yi);
 
-                    image.set(x, y, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
+                    if(dotP == -1){
+                        //apply Gouraud Shading on color by interpolating it
+                        xGouraud = pointbarycenter.x * (vnList[0].x) + pointbarycenter.y * (vnList[1].x) + pointbarycenter.z * (vnList[2].x);
+                        yGouraud = pointbarycenter.x * (vnList[0].y) + pointbarycenter.y * (vnList[1].y) + pointbarycenter.z * (vnList[2].y);
+                        zGouraud = pointbarycenter.x * (vnList[0].z) + pointbarycenter.y * (vnList[1].z) + pointbarycenter.z * (vnList[2].z);
+                        gouraudIntensity = dotProduct({xGouraud,yGouraud,zGouraud}, lightDir);
+                        if(gouraudIntensity < 0) gouraudIntensity = 0;
+                        image.set(x, y, TGAColor( gouraudIntensity*int(r_color.bgra[2]), gouraudIntensity*int(r_color.bgra[1]), gouraudIntensity*int(r_color.bgra[0]), int(r_color.bgra[3])));
+                    }
+                    else{
+                        //flat shading
+                        image.set(x, y, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
+                    }
                 }
             }
         }
@@ -171,6 +189,18 @@ Matrix Renderer::lookat(Vector3f eye, Vector3f center, Vector3f up) {
     return Minv;
 }
 
+Vec3f Renderer::vector3f2Vec3f(Vector3f v) {
+    return Vec3f(v.x,v.y,v.z);
+}
+
+void Renderer::setModel(Model model) {
+    r_model = std::move(model);
+}
+
+void Renderer::setCamera(Vector3f dir) {
+    camera = dir;
+}
+
 //not used anymore
 void Renderer::line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color){
     bool steep = false;
@@ -224,19 +254,12 @@ void Renderer::setColor(TGAColor color) {
 }
 
 void Renderer::setSavePath(string path) {
+    modelView = lookat(camera,center,{0,1,0});
+    ViewPort = viewport(r_image.get_width()/8, r_image.get_height()/8, r_image.get_width()*3/4, r_image.get_height()*3/4);
     zBuffer = new float[r_image.get_height() * r_image.get_width()];
     for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
         zBuffer[i] = INT_MIN;
     }
     r_image.clear();
     r_save_path = move(path);
-}
-
-void Renderer::setModel(Model model) {
-    //zBuffer = new float[r_image.get_height() * r_image.get_width()];
-    //for(int i = 0; i < r_image.get_height() * r_image.get_width(); i++){
-    //    zBuffer[i] = INT_MIN;
-    //}
-    //r_image.clear();
-    r_model = std::move(model);
 }

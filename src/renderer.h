@@ -25,7 +25,7 @@ protected:
     TGAColor r_color = {255, 255, 255, 255}; //default is white
     float* zBuffer;
     Vector3f lightDir = {0,0,1};
-    Vector3f camera = {2,0,3};
+    Vector3f camera = {0,0,3};
     Vector3f center = {0,0,0};
     Matrix Projection = Matrix::identity(4);
     Matrix modelView;
@@ -38,14 +38,17 @@ protected:
     Vector3f centralProjection(Vector3f point);
     Matrix v2m(Vec3f v);
     Vec3f m2v(Matrix m);
+    Vec3f vector3f2Vec3f(Vector3f v);
 public:
     Renderer(Model model, TGAImage image, string save_path);
 
     void render();
-    void triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList);
+    void triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList, vector<Vector3f> vnList);
     Matrix lookat(Vector3f eye, Vector3f center, Vector3f up);
     Vector3f normalize(Vector3f vec);
     static Matrix viewport(int x, int y, int w, int h);
+    void setModel(Model model);
+    void setCamera(Vector3f dir);
     //not used anymore
     static void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
     static void line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColor color);
@@ -53,7 +56,6 @@ public:
     void setRandomColorMode(bool status);
     void setColor(TGAColor color);
     void setSavePath(string path);
-    void setModel(Model model);
 };
 
 

@@ -84,12 +84,7 @@ Model::Model(const string& path) {
     }
 }
 
-Vec3f Model::getVertexAt(int n) {
-    //return vertices.at(n);
-    return Vec3f(vertices.at(n).x,vertices.at(n).y,vertices.at(n).z);
-}
-
-Vector3f Model::getVertexAtVector3f(int n) {
+Vector3f Model::getVertexAt(int n) {
     return vertices.at(n);
 }
 
