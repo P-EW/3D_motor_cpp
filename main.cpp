@@ -11,23 +11,32 @@ const TGAColor blue  = {  0,   0, 255, 255};
 
 int main(){
     TGAImage image(width, height, TGAImage::RGB);
+
     Model model("obj/african_head/african_head.obj");
-    Renderer renderer(model,image,"out.tga");
+    Renderer renderer(model,image,"african.tga");
     renderer.render();
     model = Model("obj/african_head/african_head_eye_inner.obj");
     renderer.setModel(model);
     renderer.render();
 
+    model = Model("obj/diablo3_pose/diablo3_pose.obj");
+    renderer = Renderer(model,image,"diablo3.tga");
+    renderer.render();
 
-    //Model model("obj/diablo3_pose/diablo3_pose.obj");
-    //Model model("obj/boggie/body.obj");
-    //Model model("obj/floor.obj");
-    //Renderer renderer(model,image,"out.tga");
-    //renderer.render();
+    model = Model("obj/boggie/body.obj");
+    renderer = Renderer(model,image,"boggie.tga");
+    renderer.render();
+    model = Model("obj/boggie/head.obj");
+    renderer.setModel(model);
+    renderer.render();
+    model = Model("obj/boggie/eyes.obj");
+    renderer.setModel(model);
+    renderer.render();
+
     /*
     Model tete("obj/african_head/african_head.obj");
     Model yeux("obj/african_head/african_head_eye_inner.obj");
-    Renderer renderer(tete,image,"out.tga");
+    renderer = Renderer(tete,image,"out.tga");
     int IMAGE = 400;
     for(int i = 0; i < IMAGE ; i++){
         renderer.setCamera({(float)(M_PI*5)*((i-(IMAGE/2.f))/IMAGE) , 0 , 3});
@@ -37,7 +46,8 @@ int main(){
         renderer.setModel(yeux);
         renderer.render();
     }
-     */
+    */
+
 
     return 0;
 }

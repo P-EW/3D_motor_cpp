@@ -9,7 +9,7 @@ Renderer::Renderer(Model model, TGAImage image, string save_path) {
         zBuffer[i] = INT_MIN;
     }
     modelView = lookat(camera,center,{0,1,0});
-    ViewPort = viewport(r_image.get_width()/8, r_image.get_height()/8, r_image.get_width()*3/4, r_image.get_height()*3/4);
+    ViewPort = viewport(0, r_image.get_height()*0.025f, r_image.get_width()*0.95f, r_image.get_height()*0.95f);
 }
 
 Matrix Renderer::viewport(int x, int y, int w, int h) {
@@ -92,10 +92,10 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, vector<Vecto
                     xi = pointbarycenter.x * (vtList[0].x) + pointbarycenter.y * (vtList[1].x) + pointbarycenter.z * (vtList[2].x);
                     yi = pointbarycenter.x * (vtList[0].y) + pointbarycenter.y * (vtList[1].y) + pointbarycenter.z * (vtList[2].y);
                     r_color = r_model.getColorAt(xi, yi);
-
+                    //calc shader
                     nmColor = r_model.getNMColorAt(xi,yi);
                     shaderVector = {(float)nmColor.bgra[0], (float)nmColor.bgra[1], (float)nmColor.bgra[2]};
-                    shader = dotProduct(normalize(shaderVector), lightDir);
+                    shader = dotProduct(normalize(shaderVector), normalize(lightDir));
                     image.set(x, y, TGAColor(shader * int(r_color.bgra[2]), shader * int(r_color.bgra[1]), shader * int(r_color.bgra[0]), int(r_color.bgra[3])));
                 }
             }
