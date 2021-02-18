@@ -2,13 +2,10 @@
 
 
 Model::Model(const string& path) {
-    if(!textureDiffuse.read_tga_file(path.substr(0, path.size()-4 )+"_diffuse.tga")){
-        cout << "texture introuvable" << endl;
-    }
+    textureDiffuse.read_tga_file(path.substr(0, path.size()-4 )+"_diffuse.tga");
     textureDiffuse.flip_vertically();
-    if(!textureNM.read_tga_file(path.substr(0, path.size()-4 )+"_nm.tga")){
-        cout << "texture introuvable" << endl;
-    }
+
+    textureNM.read_tga_file(path.substr(0, path.size()-4 )+"_nm.tga");
     textureNM.flip_vertically();
 
     ifstream file(path);

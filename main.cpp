@@ -11,6 +11,11 @@ const TGAColor blue  = {  0,   0, 255, 255};
 
 int main(){
     TGAImage image(width, height, TGAImage::RGB);
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            image.set(j,i, {50,50,50});
+        }
+    }
 
     Model model("obj/african_head/african_head.obj");
     Renderer renderer(model,image,"african.tga");
