@@ -6,6 +6,10 @@ Model::Model(const string& path) {
         cout << "texture introuvable" << endl;
     }
     textureDiffuse.flip_vertically();
+    if(!textureNM.read_tga_file(path.substr(0, path.size()-4 )+"_nm.tga")){
+        cout << "texture introuvable" << endl;
+    }
+    textureNM.flip_vertically();
 
     ifstream file(path);
     if (file.is_open()) {
@@ -88,10 +92,6 @@ Vector3f Model::getVertexAt(int n) {
     return vertices.at(n);
 }
 
-int Model::getVerticesSize() {
-    return vertices.size();
-}
-
 vector<Vector3i> Model::getFaceAt(int n) {
     return faces.at(n);
 }
@@ -102,6 +102,10 @@ int Model::getFacesSize() {
 
 TGAColor Model::getColorAt(float x, float y) {
     return (textureDiffuse.get_width() > 1) ? textureDiffuse.get(x*(textureDiffuse.get_width()), y*(textureDiffuse.get_height())) : TGAColor(255,255,255);
+}
+
+TGAColor Model::getNMColorAt(float x, float y) {
+    return (textureNM.get_width() > 1) ? textureNM.get(x*(textureNM.get_width()), y*(textureNM.get_height())) : TGAColor(255,255,255);
 }
 
 Vector3f Model::getVtAt(int n) {

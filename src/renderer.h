@@ -30,33 +30,22 @@ protected:
     Matrix Projection = Matrix::identity(4);
     Matrix modelView;
     Matrix ViewPort;
-    bool isRandomColors = false;
     static bool pointInTriangle(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2);
     static Vector3f crossProduct(Vector3f vectA, Vector3f vectB);
     static float dotProduct(Vector3f vectA, Vector3f vectB);
     static Vector3f barycenter(Vector3f p, Vector3f s0, Vector3f s1, Vector3f s2);
-    Vector3f centralProjection(Vector3f point);
     Matrix v2m(Vec3f v);
     Vec3f m2v(Matrix m);
     Vec3f vector3f2Vec3f(Vector3f v);
 public:
     Renderer(Model model, TGAImage image, string save_path);
-
     void render();
-    void triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList, vector<Vector3f> vnList);
+    void triangle(vector<Vector3f> vertices, TGAImage &image, vector<Vector3f> vtList, vector<Vector3f> vnList);
     Matrix lookat(Vector3f eye, Vector3f center, Vector3f up);
     Vector3f normalize(Vector3f vec);
     static Matrix viewport(int x, int y, int w, int h);
     void setModel(Model model);
     void setCamera(Vector3f dir);
-    //not used anymore
-    static void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
-    static void line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColor color);
-    static TGAColor getRandomColor();
-    void setRandomColorMode(bool status);
-    void setColor(TGAColor color);
     void setSavePath(string path);
 };
-
-
 #endif //INC_3D_MOTOR_CPP_RENDERER_H

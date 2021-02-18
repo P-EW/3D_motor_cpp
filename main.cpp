@@ -24,6 +24,20 @@ int main(){
     //Model model("obj/floor.obj");
     //Renderer renderer(model,image,"out.tga");
     //renderer.render();
+    /*
+    Model tete("obj/african_head/african_head.obj");
+    Model yeux("obj/african_head/african_head_eye_inner.obj");
+    Renderer renderer(tete,image,"out.tga");
+    int IMAGE = 400;
+    for(int i = 0; i < IMAGE ; i++){
+        renderer.setCamera({(float)(M_PI*5)*((i-(IMAGE/2.f))/IMAGE) , 0 , 3});
+        renderer.setSavePath("img/"+to_string(i)+".tga");
+        renderer.setModel(tete);
+        renderer.render();
+        renderer.setModel(yeux);
+        renderer.render();
+    }
+     */
 
     return 0;
 }

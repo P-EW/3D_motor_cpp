@@ -36,33 +36,20 @@ Vec3f Renderer::m2v(Matrix m) {
 }
 
 void Renderer::render() {
-    Vector3f crossP;
     vector<Vector3i> tempFace;
     vector<Vector3f> v3f, vtList, vertices, vnList;
     Vec3f tempForcalc;
-    float dotP;
     for(int i = 0; i < r_model.getFacesSize(); i++){
         tempFace = r_model.getFaceAt(i);
         for(int j = 0; j < 3 ; j++){
             vtList.push_back(r_model.getVtAt(tempFace[j].y));
             vnList.push_back(r_model.getVnAt(tempFace[j].z));
             v3f.push_back(r_model.getVertexAt(tempFace.at(j).x));
-            //vertices.push_back({(centralProjection(r_model.getVertexAt(tempFace.at(j).x)).x +1) *(r_image.get_width()/2.f), (centralProjection(r_model.getVertexAt(tempFace.at(j).x)).y +1) *(r_image.get_height()/2.f), centralProjection(r_model.getVertexAt(tempFace.at(j).x)).z});
             tempForcalc = m2v(ViewPort*Projection*modelView*v2m(vector3f2Vec3f(r_model.getVertexAt(tempFace.at(j).x))));
             vertices.push_back({tempForcalc.x,tempForcalc.y, tempForcalc.z});
         }
-        // start of flat shading calc
-        /*
-        crossP = crossProduct({v3f.at(1).x - v3f.at(0).x, v3f.at(1).y - v3f.at(0).y, v3f.at(1).z - v3f.at(0).z}, {v3f.at(2).x - v3f.at(0).x, v3f.at(2).y - v3f.at(0).y, v3f.at(2).z - v3f.at(0).z});
-        crossP = normalize(crossP);
-        dotP = dotProduct(crossP, lightDir); //light intensity of triangle
-        if(dotP >= 0) {
-            triangle(vertices, r_image, dotP, vtList, vnList);
-        }
-        */
-        // end of flat shading
         // start of Gouraud shading calc
-        triangle(vertices, r_image, -1, vtList, vnList);
+        triangle(vertices, r_image, vtList, vnList);
         // end of Gouraud shading
         vertices.clear();
         v3f.clear();
@@ -72,7 +59,7 @@ void Renderer::render() {
     r_image.write_tga_file(r_save_path);
 }
 
-void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, vector<Vector3f> vtList, vector<Vector3f> vnList) {
+void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, vector<Vector3f> vtList, vector<Vector3f> vnList) {
     //detect the square occupied by the triangle
     float minX= INT_MAX , minY = INT_MAX;
     float maxX = INT_MIN, maxY = INT_MIN;
@@ -88,8 +75,9 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
     if(maxX > r_image.get_width()) maxX = r_image.get_width();
 
     //draw the triangle
-    Vector3f pointbarycenter;
-    float z, xi, yi, xGouraud, yGouraud, zGouraud, gouraudIntensity;
+    Vector3f pointbarycenter, shaderVector;
+    float z, xi, yi, shader;
+    TGAColor nmColor;
     for(int y = minY; y <= maxY; y++){
         for(int x = minX; x <= maxX; x++){
             if(pointInTriangle(Vector2i(x, y), vertices[0], vertices[1], vertices[2])){
@@ -105,19 +93,10 @@ void Renderer::triangle(vector<Vector3f> vertices, TGAImage &image, float dotP, 
                     yi = pointbarycenter.x * (vtList[0].y) + pointbarycenter.y * (vtList[1].y) + pointbarycenter.z * (vtList[2].y);
                     r_color = r_model.getColorAt(xi, yi);
 
-                    if(dotP == -1){
-                        //apply Gouraud Shading on color by interpolating it
-                        xGouraud = pointbarycenter.x * (vnList[0].x) + pointbarycenter.y * (vnList[1].x) + pointbarycenter.z * (vnList[2].x);
-                        yGouraud = pointbarycenter.x * (vnList[0].y) + pointbarycenter.y * (vnList[1].y) + pointbarycenter.z * (vnList[2].y);
-                        zGouraud = pointbarycenter.x * (vnList[0].z) + pointbarycenter.y * (vnList[1].z) + pointbarycenter.z * (vnList[2].z);
-                        gouraudIntensity = dotProduct({xGouraud,yGouraud,zGouraud}, lightDir);
-                        if(gouraudIntensity < 0) gouraudIntensity = 0;
-                        image.set(x, y, TGAColor( gouraudIntensity*int(r_color.bgra[2]), gouraudIntensity*int(r_color.bgra[1]), gouraudIntensity*int(r_color.bgra[0]), int(r_color.bgra[3])));
-                    }
-                    else{
-                        //flat shading
-                        image.set(x, y, TGAColor(dotP * int(r_color.bgra[2]), dotP * int(r_color.bgra[1]), dotP * int(r_color.bgra[0]), int(r_color.bgra[3])));
-                    }
+                    nmColor = r_model.getNMColorAt(xi,yi);
+                    shaderVector = {(float)nmColor.bgra[0], (float)nmColor.bgra[1], (float)nmColor.bgra[2]};
+                    shader = dotProduct(normalize(shaderVector), lightDir);
+                    image.set(x, y, TGAColor(shader * int(r_color.bgra[2]), shader * int(r_color.bgra[1]), shader * int(r_color.bgra[0]), int(r_color.bgra[3])));
                 }
             }
         }
@@ -133,11 +112,6 @@ bool Renderer::pointInTriangle(Vector2i p, Vector3f s0, Vector3f s1, Vector3f s2
 
     float A = -s1.y * s2.x + s0.y * (s2.x - s1.x) + s0.x * (s1.y - s2.y) + s1.x * s2.y;
     return A < 0 ? (s <= 0 && s + t >= A) : (s >= 0 && s + t <= A);
-}
-
-Vector3f Renderer::centralProjection(Vector3f point) {
-    float cameraDist = 1-(point.z/camera.z);
-    return {point.x/cameraDist, point.y/cameraDist, point.z/cameraDist};
 }
 
 Vector3f Renderer::crossProduct(Vector3f vectA, Vector3f vectB) {
@@ -199,58 +173,6 @@ void Renderer::setModel(Model model) {
 
 void Renderer::setCamera(Vector3f dir) {
     camera = dir;
-}
-
-//not used anymore
-void Renderer::line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color){
-    bool steep = false;
-    //if the line is steep, we transpose the image
-    if(abs(x0-x1)<abs(y0-y1)){
-        swap(x0, y0);
-        swap(x1, y1);
-        steep = true;
-    }
-
-    if(x0>x1){ //make it left-to-right
-        swap(x0, x1);
-        swap(y0, y1);
-    }
-
-    int dx = x1-x0;
-    int dy = y1-y0;
-    int derror3 = 2*abs(dy);
-    int error3 = 0;
-
-    int y = y0;
-    for(int x = x0; x < x1 ; x++){
-        if(steep){ //if transposed, de-transpose
-            image.set(y, x, color);
-        }
-        else{
-            image.set(x, y, color);
-        }
-        error3 += derror3;
-        if(error3>dx){
-            y+= (dy > 0 ? 1 : -1);
-            error3 -=2*dx;
-        }
-    }
-}
-void Renderer::line(Vector2i vertex0, Vector2i vertex1, TGAImage &image, TGAColor color) {
-    line(vertex0.x, vertex0.y, vertex1.x, vertex1.y, image, color);
-}
-
-TGAColor Renderer::getRandomColor() {
-    TGAColor couleur(std::rand()%255,std::rand()%255,std::rand()%255,255);
-    return  couleur;
-}
-
-void Renderer::setRandomColorMode(bool status) {
-    isRandomColors = status;
-}
-
-void Renderer::setColor(TGAColor color) {
-    r_color = color;
 }
 
 void Renderer::setSavePath(string path) {

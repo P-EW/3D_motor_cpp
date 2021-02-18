@@ -28,22 +28,17 @@ protected:
     vector<Vector3f> vt;
     vector<Vector3f> vn;
     TGAImage textureDiffuse;
+    TGAImage textureNM;
 
 public:
     Model() = default;
     explicit Model(const string& path);
-
-    int getVerticesSize();
     Vector3f getVertexAt(int n);
-
     int getFacesSize();
     vector<Vector3i> getFaceAt(int n);
-
     Vector3f getVtAt(int n);
     TGAColor getColorAt(float x, float y);
-
+    TGAColor getNMColorAt(float x, float y);
     Vector3f getVnAt(int n);
 };
-
-
 #endif //INC_3D_MOTOR_CPP_MODEL_H
